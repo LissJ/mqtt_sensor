@@ -23,9 +23,8 @@ O sensor Python foi corrigido para funcionar de maneira confiável. Os seguintes
 
 -   **Protocolo:** O protocolo (presente no .py) foi alterado de `MQTTv5` para `MQTTv3.1.1` (`MQTTv311`) para garantir compatibilidade com o Mosquitto 2.0.20.
 -   **Host e Porta:** O host foi definido como `mqtt-broker` e a porta como `1883`, permitindo a comunicação interna via TCP.
--   **TLS:** A tentativa de usar TLS na comunicação interna foi removida, mantendo a criptografia apenas para a porta externa (8883).
 
-Como resultado, o sensor agora publica leituras de forma contínua e confiável na rede interna.
+Como resultado, o sensor agora publica leituras de forma contínua e confiável.
 
 ### 2. Broker MQTT
 
