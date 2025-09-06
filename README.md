@@ -109,6 +109,3 @@ mosquitto_sub -h localhost -p 8883 --cafile ./mosquitto/certs/ca.crt -t 'sensor/
   - **Certificados TLS** foram criados para proteger a comunicação externa.
 
 Este projeto demonstra boas práticas de segurança MQTT, mantendo o ambiente funcional e garantindo a integridade dos dados transmitidos.
-
-```
-```
