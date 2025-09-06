@@ -12,8 +12,8 @@ USER app
 ENV BROKER_HOST=mqtt-broker \
     BROKER_PORT=1883 \
     BROKER_TLS=false \
-    BROKER_USERNAME=liss \
-    BROKER_PASSWORD=liss123 \
+    BROKER_USERNAME=<USUÁRIO> \
+    BROKER_PASSWORD=<SENHA> \
     TOPIC=sensor/temperature \
     INTERVAL_SECONDS=5 \
     QOS=0 \
