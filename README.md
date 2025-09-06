@@ -39,7 +39,7 @@ O broker foi configurado para gerenciar o tráfego de maneira segura:
 **Exemplo de ACL:**
 
 ```text
-user liss
+user <USUÁRIO_CRIADO>
 topic readwrite sensor/#
 ````
 
@@ -47,18 +47,40 @@ topic readwrite sensor/#
 
 ## Como Executar o Projeto
 
-1.  **Gere a senha de autenticação:**
+### 1\. Criando a Autenticação
+
+Para adicionar uma camada de segurança ao broker, a autenticação foi configurada. As etapas a seguir foram executadas para criar e gerenciar um arquivo de senhas, garantindo que apenas usuários autorizados possam se conectar.
+
+1.  **Estrutura de diretórios:**
+
     ```bash
-    mosquitto_passwd -b ./mosquitto/config/mosquitto.passwd liss liss123
+    mkdir -p /caminho/do/seu/projeto/mosquitto/{config,data,log,certs}
     ```
-2.  **Inicie os serviços:**
-    ```bash
-    docker-compose up -d
+
+    Isso cria a estrutura de pastas necessária para o broker.
+
+2.  **Configuração do Mosquitto:**
+    No arquivo de configuração `mosquitto.conf`, as seguintes linhas foram adicionadas para desabilitar conexões anônimas e apontar para o arquivo de senhas:
+
+    ```ini
+    allow_anonymous false
+    password_file /caminho/do/seu/projeto/mosquitto/config/mosquitto.passwd
     ```
-    *Para reconstruir o sensor após alterações:*
+
+3.  **Criação de usuário e senha:**
+    O comando `mosquitto_passwd` foi usado para criar o arquivo de senhas e adicionar um novo usuário. A ferramenta solicita que você crie um nome de usuário e uma senha segura.
+
     ```bash
-    docker-compose build temperature-sensor-1
-    docker-compose up -d --no-deps --build temperature-sensor-1
+    mosquitto_passwd -c /caminho/do/seu/projeto/mosquitto/config/mosquitto.passwd <seu_usuario>
+    ```
+
+    Após a execução, um arquivo de senhas criptografadas foi gerado, contendo as credenciais de acesso.
+
+### 2\. Executando os Serviços
+
+1.  **Inicie os serviços:**
+    ```bash
+    docker compose up -d --build
     ```
 
 -----
@@ -74,7 +96,7 @@ mosquitto_pub -h localhost -p 1883 -t 'sensor/temperature' -m '27.5' -d
 ### Subscriber externo via TLS
 
 ```bash
-mosquitto_sub -h localhost -p 8883 --cafile ./mosquitto/certs/ca.crt -t 'sensor/#' -v --tls-version tlsv1.2 -u liss -P liss123 -d
+mosquitto_sub -h localhost -p 8883 --cafile ./mosquitto/certs/ca.crt -t 'sensor/#' -v --tls-version tlsv1.2 -u <USUÁRIO_CRIADO> -P <SENHA> -d
 ```
 
 -----
@@ -88,3 +110,6 @@ mosquitto_sub -h localhost -p 8883 --cafile ./mosquitto/certs/ca.crt -t 'sensor/
   - **Certificados TLS** foram criados para proteger a comunicação externa.
 
 Este projeto demonstra boas práticas de segurança MQTT, mantendo o ambiente funcional e garantindo a integridade dos dados transmitidos.
+
+```
+```
