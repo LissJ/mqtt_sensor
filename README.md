@@ -35,52 +35,72 @@ O broker foi configurado para gerenciar o tráfego de maneira segura:
 -   **Segurança:** A configuração `allow_anonymous false` na porta externa, o `password_file` e as **ACLs (Access Control Lists)** foram implementadas para controlar rigorosamente o acesso.
 -   **Criptografia:** Certificados TLS foram gerados para garantir a criptografia, integridade e autenticidade das mensagens.
 
-**Exemplo de ACL:**
-
-```text
-user <USUÁRIO_CRIADO>
-topic readwrite sensor/#
-````
-
 -----
 
 ## Como Executar o Projeto
 
-### 1\. Criando a Autenticação
+Para executar este projeto, é necessário seguir alguns passos de configuração para garantir que o ambiente de segurança esteja pronto antes de iniciar os serviços.
 
-Para adicionar uma camada de segurança ao broker, a autenticação foi configurada. As etapas a seguir foram executadas para criar e gerenciar um arquivo de senhas, garantindo que apenas usuários autorizados possam se conectar.
+### 1\. Criando Certificados TLS e Arquivos de Autenticação
 
-1.  **Estrutura de diretórios:**
+Esses comandos devem ser executados no seu terminal **no diretório raiz do projeto** (`mqtt_sensor`), onde o `docker-compose.yml` está localizado.
 
-    ```bash
-    mkdir -p /caminho/do/seu/projeto/mosquitto/{config,data,log,certs}
-    ```
-
-    Isso cria a estrutura de pastas necessária para o broker.
-
-2.  **Configuração do Mosquitto:**
-    No arquivo de configuração `mosquitto.conf`, as seguintes linhas foram adicionadas para desabilitar conexões anônimas e apontar para o arquivo de senhas:
-
-    ```ini
-    allow_anonymous false
-    password_file /caminho/do/seu/projeto/mosquitto/config/mosquitto.passwd
-    ```
-
-3.  **Criação de usuário e senha:**
-    O comando `mosquitto_passwd` foi usado para criar o arquivo de senhas e adicionar um novo usuário. A ferramenta solicita que você crie um nome de usuário e uma senha segura.
+1.  **Criação da estrutura de diretórios:**
+    Garanta que a estrutura de pastas para os certificados e a configuração exista.
 
     ```bash
-    mosquitto_passwd -c /caminho/do/seu/projeto/mosquitto/config/mosquitto.passwd <seu_usuario>
+    mkdir -p mosquitto/{config,certs}
     ```
 
-    Após a execução, um arquivo de senhas criptografadas foi gerado, contendo as credenciais de acesso.
+2.  **Geração dos Certificados TLS:**
+    Os certificados são essenciais para criptografar a comunicação externa na porta 8883.
+
+    ```bash
+    # Navegue para o diretório de certificados
+    cd mosquitto/certs
+
+    # Gerar a chave privada da Autoridade Certificadora (CA)
+    openssl genrsa -out ca.key 4096
+
+    # Gerar o certificado autoassinado da CA
+    openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -subj "/CN=MyTestCA" -out ca.crt
+
+    # Gerar a chave privada e a solicitação de assinatura (CSR) do servidor
+    openssl genrsa -out server.key 4096
+    openssl req -new -key server.key -subj "/CN=mqtt-broker" -out server.csr
+
+    # Assinar o certificado do servidor com a CA
+    openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -sha256
+    ```
+
+3.  **Criação do Arquivo de Senhas:**
+    Use o comando `mosquitto_passwd` para criar um arquivo de senhas para o broker.
+
+    ```bash
+    # Gere o arquivo de senha (no host, use o mosquitto_passwd)
+    mosquitto_passwd -b ./mosquitto.passwd <USUÁRIO> <SENHA>
+
+    # Mova o arquivo de senha para o diretório de configuração do broker
+    mv mosquitto.passwd ../config/mosquitto.passwd
+    ```
+
+4.  **Criação do Arquivo de ACL:**
+    Crie o arquivo `mosquitto/config/mosquitto.acl` com o seguinte conteúdo para definir as permissões de acesso ao tópico `sensor/#`:
+
+    ```text
+    user <USUÁRIO_CRIADO>
+    topic read sensor/#
+    ```
 
 ### 2\. Executando os Serviços
 
-1.  **Inicie os serviços:**
+Com os certificados e arquivos de autenticação criados, você pode iniciar o projeto.
+
+1.  **Inicie os serviços com Docker Compose:**
     ```bash
     docker compose up -d --build
     ```
+    Isso iniciará o broker, o sensor e o subscriber.
 
 -----
 
