@@ -51,7 +51,7 @@ Antes de criar qualquer arquivo, é crucial garantir que as permissões do diret
 sudo chown -R user:user /home/user/mqtt-project/mosquitto
 ```
 
-Este comando altera o proprietário do diretório para o usuário `liss`, concedendo as permissões necessárias para criar e manipular os arquivos de configuração.
+Este comando altera o proprietário do diretório para o usuário `user`, concedendo as permissões necessárias para criar e manipular os arquivos de configuração.
 
 ### 2\. Criando a Estrutura de Diretórios
 
