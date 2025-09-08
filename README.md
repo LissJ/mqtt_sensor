@@ -37,11 +37,71 @@ O broker foi configurado para gerenciar o tráfego de maneira segura:
 
 -----
 
+-----
+
+## Autenticação Essencial
+
+Esta seção detalha os passos essenciais para configurar a autenticação e garantir que o broker Mosquitto não aceite conexões anônimas.
+
+### 1\. Gerenciando Permissões
+
+Antes de criar qualquer arquivo, é crucial garantir que as permissões do diretório `mosquitto` sejam do usuário que irá executar os comandos, evitando problemas de acesso.
+
+```bash
+sudo chown -R user:user /home/user/mqtt-project/mosquitto
+```
+
+Este comando altera o proprietário do diretório para o usuário `liss`, concedendo as permissões necessárias para criar e manipular os arquivos de configuração.
+
+### 2\. Criando a Estrutura de Diretórios
+
+Crie a estrutura de diretórios que o broker irá utilizar para armazenar configurações, dados, logs e certificados.
+
+```bash
+mkdir -p /home/user/mqtt-project/mosquitto/{config,data,log,certs}
+ls -l /home/user/mqtt-project/mosquitto
+```
+
+O comando `mkdir -p` cria os diretórios necessários. O `ls -l` é usado para confirmar que a estrutura de pastas foi criada com sucesso.
+
+### 3\. Configurando o Broker
+
+No arquivo `mosquitto.conf`, adicione as seguintes linhas para desativar o acesso anônimo e apontar para o arquivo de senhas.
+
+```ini
+allow_anonymous false
+password_file /home/user/mqtt-project/mosquitto/config/mosquitto.passwd
+```
+
+  * `allow_anonymous false`: Garante que apenas clientes com credenciais válidas possam se conectar.
+  * `password_file`: Define o caminho para o arquivo que conterá as senhas criptografadas.
+
+### 4\. Criando Usuário e Senha
+
+Instale as ferramentas do Mosquitto, se ainda não as tiver, e utilize o comando `mosquitto_passwd` para criar o arquivo de senhas e adicionar um novo usuário.
+
+```bash
+sudo apt update && sudo apt install mosquitto mosquitto-clients -y
+mosquitto_passwd -c /home/user/mqtt-project/mosquitto/config/mosquitto.passwd <USUÁRIO_CRIADO>
+```
+
+A flag `-c` cria o arquivo de senhas (`mosquitto.passwd`) e adiciona o usuário `<USUÁRIO_CRIADO>`. Você será solicitado a digitar e confirmar a senha.
+
+### 5\. Verificando a Criação do Arquivo
+
+Após a execução, um arquivo de senhas criptografadas será gerado. Você pode verificar se ele foi criado corretamente com o seguinte comando:
+
+```bash
+ls -l /home/user/mqtt-project/mosquitto/config/mosquitto.passwd
+```
+
+-----
+
 ## Como Executar o Projeto
 
 Para executar este projeto, é necessário seguir alguns passos de configuração para garantir que o ambiente de segurança esteja pronto antes de iniciar os serviços.
 
-### 1\. Criando Certificados TLS e Arquivos de Autenticação
+### 1\. Criando Certificados TLS
 
 Esses comandos devem ser executados no seu terminal **no diretório raiz do projeto** (`mqtt_sensor`), onde o `docker-compose.yml` está localizado.
 
@@ -78,7 +138,7 @@ Esses comandos devem ser executados no seu terminal **no diretório raiz do proj
 
     ```bash
     # Gere o arquivo de senha (no host, use o mosquitto_passwd)
-    mosquitto_passwd -b ./mosquitto.passwd <USUÁRIO> <SENHA>
+    mosquitto_passwd -b ./mosquitto.passwd <USUÁRIO_CRIADO> <SENHA>
 
     # Mova o arquivo de senha para o diretório de configuração do broker
     mv mosquitto.passwd ../config/mosquitto.passwd
@@ -122,6 +182,7 @@ mosquitto_sub -h localhost -p 8883 --cafile ./mosquitto/certs/ca.crt -t 'sensor/
 
 ## Resumo Técnico
 
+  - A **autenticação** com usuário e senha foi adicionada ao projeto.
   - O **Sensor Python** foi corrigido e está funcionando via **TCP** na rede interna.
   - O protocolo foi alterado de **MQTTv5** para **MQTTv3.1.1**.
   - O broker foi configurado com **TLS** e **autenticação** para conexões externas.
